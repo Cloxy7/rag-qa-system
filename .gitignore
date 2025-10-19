@@ -1,0 +1,36 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Environment variables (IMPORTANT!)
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads folder content (keep folder, ignore files)
+uploads/*
+!uploads/.gitkeep
+
+# Logs
+*.log
+
+# Flask
+instance/
+.webassets-cache

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG System with Document Upload</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .tab {
+            padding: 15px 30px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 20px 0;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            background: #f8f9ff;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .upload-area:hover {
+            background: #eef0ff;
+        }
+        
+        .upload-area input[type="file"] {
+            display: none;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            flex: 1;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin: 30px 0;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .answer-box {
+            background: #f8f9ff;
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 4px solid #667eea;
+            margin-bottom: 25px;
+        }
+        
+        .answer-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .answer-text {
+            line-height: 1.8;
+            color: #333;
+        }
+        
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .metric {
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .metric-label {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        .sources {
+            margin-top: 20px;
+        }
+        
+        .source-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .source-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .source-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .score-badge {
+            background: #28a745;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-size: 18px;
+            padding: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .file-name {
+            margin-top: 10px;
+            color: #667eea;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 RAG Q&A System</h1>
+        <p class="subtitle">Upload documents or paste text, then ask questions</p>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('upload')">📤 Upload Documents</button>
+            <button class="tab" onclick="switchTab('query')">🔍 Ask Questions</button>
+        </div>
+        
+        <!-- Upload Tab -->
+        <div id="upload-tab" class="tab-content active">
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <h3>📁 Click to Upload File</h3>
+                <p>Support: PDF, DOCX, TXT (Max 16MB)</p>
+                <input type="file" id="fileInput" accept=".pdf,.docx,.txt" onchange="handleFileSelect(event)">
+                <div id="fileName" class="file-name"></div>
+            </div>
+            
+            <div style="text-align: center; margin: 20px 0; color: #999;">OR</div>
+            
+            <textarea id="textInput" placeholder="Paste your text here..."></textarea>
+            
+            <div class="button-group">
+                <button onclick="uploadData()" id="uploadBtn">Upload</button>
+                <button class="btn-secondary" onclick="clearDatabase()">Clear Database</button>
+            </div>
+            
+            <div id="uploadStatus" class="status"></div>
+        </div>
+        
+        <!-- Query Tab -->
+        <div id="query-tab" class="tab-content">
+            <div class="search-box">
+                <input type="text" id="queryInput" placeholder="Ask a question about your documents..." onkeypress="if(event.key==='Enter') askQuestion()">
+                <button onclick="askQuestion()" id="askBtn">Ask</button>
+            </div>
+            
+            <div id="loading" class="loading hidden">⏳ Searching and generating answer...</div>
+            
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        function switchTab(tab) {
+            // Update tabs
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if (tab === 'upload') {
+                document.querySelector('.tab:nth-child(1)').classList.add('active');
+                document.getElementById('upload-tab').classList.add('active');
+            } else {
+                document.querySelector('.tab:nth-child(2)').classList.add('active');
+                document.getElementById('query-tab').classList.add('active');
+            }
+        }
+
+        function handleFileSelect(event) {
+            selectedFile = event.target.files[0];
+            if (selectedFile) {
+                document.getElementById('fileName').textContent = `Selected: ${selectedFile.name}`;
+            }
+        }
+
+        async function uploadData() {
+            const text = document.getElementById('textInput').value;
+            const statusDiv = document.getElementById('uploadStatus');
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            if (!selectedFile && !text.trim()) {
+                showStatus('Please select a file or enter text', 'error');
+                return;
+            }
+            
+            uploadBtn.disabled = true;
+            showStatus('Uploading...', 'success');
+            
+            const formData = new FormData();
+            if (selectedFile) {
+                formData.append('file', selectedFile);
+            }
+            if (text.trim()) {
+                formData.append('text', text);
+            }
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus(`✅ ${data.message} (${data.time})`, 'success');
+                    // Clear inputs
+                    document.getElementById('textInput').value = '';
+                    document.getElementById('fileInput').value = '';
+                    document.getElementById('fileName').textContent = '';
+                    selectedFile = null;
+                } else {
+                    showStatus(`❌ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            }
+            
+            uploadBtn.disabled = false;
+        }
+
+        async function clearDatabase() {
+            if (!confirm('Are you sure you want to clear all documents?')) return;
+            
+            try {
+                const response = await fetch('/clear', { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('✅ Database cleared successfully', 'success');
+                } else {
+                    showStatus(`❌ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        async function askQuestion() {
+            const query = document.getElementById('queryInput').value;
+            if (!query.trim()) return;
+            
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('askBtn').disabled = true;
+            document.getElementById('results').innerHTML = '';
+            
+            try {
+                const response = await fetch('/query', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query: query})
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('results').innerHTML = `<p style="color: red;">${data.error}</p>`;
+                } else {
+                    displayResults(data);
+                }
+            } catch (error) {
+                document.getElementById('results').innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+            
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('askBtn').disabled = false;
+        }
+        
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('results');
+            
+            let html = `
+                <div class="answer-box">
+                    <h3>💡 Answer</h3>
+                    <div class="answer-text">${data.answer}</div>
+                    
+                    <div class="metrics">
+                        <div class="metric">
+                            <div class="metric-value">${data.time}</div>
+                            <div class="metric-label">Total Time</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.retrieval_time}</div>
+                            <div class="metric-label">Retrieval</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.rerank_time}</div>
+                            <div class="metric-label">Reranking</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.llm_time}</div>
+                            <div class="metric-label">LLM</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.tokens.total_tokens}</div>
+                            <div class="metric-label">Tokens</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value">${data.cost.total_cost.toFixed(6)}</div>
+                            <div class="metric-label">Est. Cost</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sources">
+                    <h3>📚 Sources (Top ${data.sources.length} after reranking)</h3>
+            `;
+            
+            data.sources.forEach((source, i) => {
+                html += `
+                    <div class="source-item">
+                        <div class="source-header">
+                            <div>
+                                <span class="source-badge">[${i+1}]</span>
+                                <strong>${source.source}</strong>
+                                ${source.chunk_id !== undefined ? ` - Chunk ${source.chunk_id}` : ''}
+                            </div>
+                            <div>
+                                <span class="score-badge">Retrieval: ${source.score.toFixed(3)}</span>
+                                ${source.rerank_score !== undefined ? 
+                                    `<span class="score-badge" style="background: #17a2b8; margin-left: 5px;">Rerank: ${source.rerank_score.toFixed(3)}</span>` 
+                                    : ''}
+                            </div>
+                        </div>
+                        <p style="margin-top: 8px; color: #666;">${source.text}</p>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html;
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('uploadStatus');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
