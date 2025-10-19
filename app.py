@@ -56,7 +56,7 @@ def upload_file():
             text = request.form['text']
             if text.strip():
                 # Chunk the text
-                text_chunks = chunk_text(text, chunk_size=1000, overlap=150)
+                text_chunks = chunk_text(text, chunk_size=3000, overlap=450)
                 
                 # Format for vector DB
                 chunks = []

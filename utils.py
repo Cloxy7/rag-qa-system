@@ -1,30 +1,25 @@
-import tiktoken
 from PyPDF2 import PdfReader
 from docx import Document
 import re
 
 def count_tokens(text, model="gpt-3.5-turbo"):
-    """Count tokens in text"""
-    encoding = tiktoken.encoding_for_model(model)
-    return len(encoding.encode(text))
+    """Estimate tokens (rough approximation: 1 token ≈ 4 characters)"""
+    return len(text) // 4
 
-def chunk_text(text, chunk_size=1000, overlap=150):
+def chunk_text(text, chunk_size=3000, overlap=450):
     """
-    Chunk text with overlap
-    chunk_size: target tokens per chunk (default 1000)
-    overlap: overlap tokens between chunks (default 15%)
+    Chunk text by characters with overlap
+    chunk_size: target characters per chunk (default 3000 ~ 750-1000 tokens)
+    overlap: overlap characters between chunks (default 15%)
     """
-    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
-    tokens = encoding.encode(text)
-    
     chunks = []
     start = 0
+    text_length = len(text)
     
-    while start < len(tokens):
+    while start < text_length:
         end = start + chunk_size
-        chunk_tokens = tokens[start:end]
-        chunk_text = encoding.decode(chunk_tokens)
-        chunks.append(chunk_text)
+        chunk = text[start:end]
+        chunks.append(chunk)
         start = end - overlap
     
     return chunks
@@ -72,8 +67,8 @@ def process_document(file_path, source_name):
     # Clean text
     text = clean_text(text)
     
-    # Chunk text
-    chunks = chunk_text(text, chunk_size=1000, overlap=150)
+    # Chunk text (3000 chars ≈ 750-1000 tokens)
+    chunks = chunk_text(text, chunk_size=3000, overlap=450)
     
     # Add metadata
     processed_chunks = []
